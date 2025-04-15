@@ -1,0 +1,1175 @@
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { MessageCircle, Send, Paperclip, Mic, X, Image, File, MapPin, Globe, ChevronLeft, ExternalLink, User, Bot, Plus, CalendarDays, Loader2 } from 'lucide-react';
+
+// Main App Component
+const MedellinApp = () => {
+  // State variables
+  const [message, setMessage] = useState('');
+  const [conversation, setConversation] = useState([]);
+  const [showChatPanel, setShowChatPanel] = useState(false);
+  const [isAiTyping, setIsAiTyping] = useState(false); // Keep for real loading state
+  const [isRecording, setIsRecording] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [language, setLanguage] = useState('en');
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedFeature, setSelectedFeature] = useState(null);
+  const [selectedInspiration, setSelectedInspiration] = useState(null);
+
+  // Ref for chat panel scrolling
+  const chatPanelRef = useRef(null);
+
+  // Scroll to bottom when conversation updates or AI starts/stops typing
+  useEffect(() => {
+    if (showChatPanel && chatPanelRef.current) {
+      chatPanelRef.current.scrollTop = chatPanelRef.current.scrollHeight;
+    }
+  }, [conversation, showChatPanel, isAiTyping]);
+
+
+  // Translations object
+  const translations = {
+        en: {
+      // ... (all previous translations remain the same) ...
+      welcome: "¡Hola! Welcome to Medellin, the City of Eternal Spring! I'm your AI assistant ready to help you plan an unforgettable experience...", // Shortened for brevity
+      discover: "Discover Medellin",
+      forYou: "For you in Comuna 13",
+      explore: "Explore",
+      askAbout: "Ask about Medellin...",
+      newChat: "New Chat",
+      createTrip: "Create a trip",
+      attachPhoto: "Attach photo",
+      attachDocument: "Attach document",
+      shareLocation: "Share location",
+      viewpoints: "Viewpoints",
+      tours: "Tours",
+      restaurants: "Restaurants",
+      attractions: "Attractions",
+      backToMain: "Back",
+      learnMore: "Learn more",
+      readReviews: "Read reviews",
+      showOnMap: "Show on map",
+      visitWebsite: "Visit website",
+      description: "Description",
+      openHours: "Opening Hours",
+      address: "Address",
+      price: "Price",
+      reviews: "reviews",
+      travelQuiz: "Take our travel quiz",
+      travelQuizDesc: "Find your perfect Medellin experience",
+      createItinerary: "Create an itinerary",
+      createItineraryDesc: "Plan your perfect Medellin trip",
+      localInsights: "Local insights",
+      localInsightsDesc: "Discover hidden gems",
+      safetyTips: "Safety Tips",
+      safetyTipsDesc: "Stay safe while exploring",
+      getInspired: "Get inspired",
+      seeAll: "See all",
+      bestThings: "10 Best Things to Do",
+      daysIn: "3 Days in Medellin",
+      hiddenGems: "Hidden Gems",
+      foodGuide: "Medellin Food Guide",
+      guide: "Guide",
+      itinerary: "Itinerary",
+      localTips: "Local Tips",
+      food: "Food",
+      startQuiz: "Start Quiz",
+      startPlanning: "Start Planning",
+      exploreInsights: "Explore Insights",
+      viewTips: "View Tips",
+      recommendationsTitle: "Your Personalized Recommendations",
+      recommendationsDesc: "Based on your preferences, here are some attractions and experiences...",
+      itinerarySteps: "Steps",
+      sampleItinerary: "Sample Itinerary",
+      day: "Day",
+      insightsTitle: "Local Insights: Discover Medellín Like a Local",
+      safetyTitle: "Stay Safe in Medellín",
+      bestThingsTitle: "10 Best Things to Do in Medellín",
+      threeDaysTitle: "Perfect 3 Days in Medellín",
+      hiddenGemsTitle: "Hidden Gems: Local Secrets",
+      foodGuideTitle: "Ultimate Medellín Food Guide",
+      answerQuestionsPrompt: "Answer a few questions to get started:",
+      createItineraryPrompt: "Follow these steps to create your perfect itinerary:",
+      safetyIntro: "Medellín is generally safe for tourists, but like any major city...",
+      emergencyHelpTitle: "Need Emergency Help?",
+      emergencyHelpPrompt: "Save these numbers in your phone before you travel:",
+      emergencyPolice: "Police: 123",
+      emergencyTouristPolice: "Tourist Police: (+57) 317 8970588",
+      emergencyAmbulance: "Ambulance: 125",
+      learnMoreAttraction: "Click to learn more about this attraction",
+      seeDetails: "See details",
+      popularArticles: "Popular Articles",
+      chatWithAI: "Chat with Medellin AI",
+      aiTyping: "AI is thinking...", // Changed text slightly
+      closeChat: "Close Chat",
+      newChatWelcome: "Hi there! Ready to explore Medellin? Ask me anything!",
+      createTripStartPrompt: "Great! Let's plan your trip. How many days will you be in Medellín?",
+      apiError: "Sorry, I encountered an error connecting to the information service. Please try again later.", // New error message
+    },
+    es: {
+      // ... (all previous translations remain the same) ...
+       welcome: "¡Hola! Bienvenido a Medellín, la Ciudad de la Eterna Primavera! Soy tu asistente de IA listo para ayudarte a planear una experiencia inolvidable...",
+      discover: "Descubre Medellín",
+      forYou: "Para ti en Comuna 13",
+      explore: "Explorar",
+      askAbout: "Pregunta sobre Medellín...",
+      newChat: "Nuevo Chat",
+      createTrip: "Crear un viaje",
+      attachPhoto: "Adjuntar foto",
+      attachDocument: "Adjuntar documento",
+      shareLocation: "Compartir ubicación",
+      viewpoints: "Miradores",
+      tours: "Tours",
+      restaurants: "Restaurantes",
+      attractions: "Atracciones",
+      backToMain: "Volver",
+      learnMore: "Saber más",
+      readReviews: "Leer reseñas",
+      showOnMap: "Mostrar en mapa",
+      visitWebsite: "Visitar sitio web",
+      description: "Descripción",
+      openHours: "Horario de apertura",
+      address: "Dirección",
+      price: "Precio",
+      reviews: "reseñas",
+      travelQuiz: "Haz nuestro quiz de viaje",
+      travelQuizDesc: "Encuentra tu experiencia perfecta en Medellín",
+      createItinerary: "Crea un itinerario",
+      createItineraryDesc: "Planifica tu viaje perfecto a Medellín",
+      localInsights: "Consejos locales",
+      localInsightsDesc: "Descubre lugares secretos",
+      safetyTips: "Consejos de seguridad",
+      safetyTipsDesc: "Mantente seguro mientras exploras",
+      getInspired: "Inspírate",
+      seeAll: "Ver todo",
+      bestThings: "10 Mejores Cosas que Hacer",
+      daysIn: "3 Días en Medellín",
+      hiddenGems: "Joyas Escondidas",
+      foodGuide: "Guía Gastronómica de Medellín",
+      guide: "Guía",
+      itinerary: "Itinerario",
+      localTips: "Consejos Locales",
+      food: "Comida",
+      startQuiz: "Empezar Quiz",
+      startPlanning: "Empezar a Planear",
+      exploreInsights: "Explorar Consejos",
+      viewTips: "Ver Consejos",
+      recommendationsTitle: "Tus Recomendaciones Personalizadas",
+      recommendationsDesc: "Basado en tus preferencias, aquí tienes algunas atracciones y experiencias...",
+      itinerarySteps: "Pasos",
+      sampleItinerary: "Itinerario de Ejemplo",
+      day: "Día",
+      insightsTitle: "Consejos Locales: Descubre Medellín Como un Local",
+      safetyTitle: "Mantente Seguro en Medellín",
+      bestThingsTitle: "10 Mejores Cosas que Hacer en Medellín",
+      threeDaysTitle: "3 Días Perfectos en Medellín",
+      hiddenGemsTitle: "Joyas Escondidas: Secretos Locales",
+      foodGuideTitle: "Guía Gastronómica Definitiva de Medellín",
+      answerQuestionsPrompt: "Responde algunas preguntas para comenzar:",
+      createItineraryPrompt: "Sigue estos pasos para crear tu itinerario perfecto:",
+      safetyIntro: "Medellín es generalmente seguro para turistas, pero como cualquier ciudad grande...",
+      emergencyHelpTitle: "¿Necesitas ayuda de emergencia?",
+      emergencyHelpPrompt: "Guarda estos números en tu teléfono antes de viajar:",
+      emergencyPolice: "Policía: 123",
+      emergencyTouristPolice: "Policía de Turismo: (+57) 317 8970588",
+      emergencyAmbulance: "Ambulancia: 125",
+      learnMoreAttraction: "Haz clic para saber más sobre esta atracción",
+      seeDetails: "Ver detalles",
+      popularArticles: "Artículos Populares",
+      chatWithAI: "Chatea con Medellin AI",
+      aiTyping: "AI está pensando...", // Changed text slightly
+      closeChat: "Cerrar Chat",
+      newChatWelcome: "¡Hola! ¿Listo para explorar Medellín? Pregúntame lo que quieras.",
+      createTripStartPrompt: "¡Genial! Vamos a planear tu viaje. ¿Cuántos días estarás en Medellín?",
+      apiError: "Lo siento, encontré un error conectando al servicio de información. Por favor, inténtalo más tarde.", // New error message
+    }
+  };
+
+  // Get current translation based on language state
+  const t = translations[language];
+
+  // Local knowledge base (Still useful for simple queries or as fallback)
+  const knowledgeBase = [
+    { id: 1, title: "Medellin Airport Guide", url: "https://medellinparce.com/medellin-airport-guide/", summary: "Comprehensive guide to José María Córdova International Airport with tips on transportation, facilities, and services.", tags: ["airport", "guide", "transportation", "arrival"] },
+    { id: 2, title: "Medellin Airport to Downtown", url: "https://medellinparce.com/medellin-airport-to-downtown/", summary: "Options for getting from José María Córdova Airport to Medellin's downtown area, including taxis, buses, and ridesharing services.", tags: ["airport", "transportation", "taxi", "bus", "downtown"] },
+    { id: 3, title: "Medellin Airport Customs 2025", url: "https://medellinparce.com/medellin-airport-customs-2025/", summary: "Updated information about customs procedures, documentation requirements, and tips for a smooth arrival in Medellin.", tags: ["airport", "customs", "immigration", "arrival", "documents"] },
+    { id: 4, title: "Karol G Restaurants Medellin Guide", url: "https://medellinparce.com/karol-g-restaurants-medellin-guide/", summary: "A guide to restaurants in Medellin owned by or connected to Colombian superstar Karol G.", tags: ["restaurants", "celebrities", "food", "karol g", "dining"] },
+    { id: 5, title: "Medellin vs Nacional: Colombia Football Rivalry Guide", url: "https://medellinparce.com/medellin-vs-nacional-colombia-football-rivalry-guide/", summary: "Everything you need to know about the historic rivalry between Medellin's two major football clubs.", tags: ["sports", "football", "soccer", "culture", "rivalry", "nacional", "medellin"] },
+    { id: 6, title: "Perro Negro Medellin 2025", url: "https://medellinparce.com/perro-negro-medellin-2025/", summary: "Guide to Perro Negro, one of Medellin's most iconic street food experiences.", tags: ["food", "street food", "cuisine", "nightlife", "perro negro"] },
+    { id: 7, title: "Provenza Medellin Guide 2025", url: "https://medellinparce.com/provenza-medellin-guide-2025/", summary: "Explore Provenza, one of Medellin's trendiest neighborhoods, with recommendations for restaurants, bars, and shopping.", tags: ["neighborhoods", "nightlife", "restaurants", "bars", "shopping", "provenza", "poblado"] },
+    { id: 8, title: "Medellin Off The Beaten Path", url: "https://medellinparce.com/medellin-off-the-beaten-path/", summary: "Discover hidden gems and less-visited attractions in and around Medellin for the adventurous traveler.", tags: ["attractions", "hidden gems", "adventure", "explore", "off path"] },
+    { id: 9, title: "Safest Neighborhoods in Medellin (Envigado, Poblado, Laureles)", url: "https://medellinparce.com/safest-neighborhoods-medellin-envigado-poblado-laureles/", summary: "Information about El Poblado, Envigado, Laureles, and other safe areas to stay in Medellin.", tags: ["safety", "neighborhoods", "accommodation", "poblado", "laureles", "envigado", "stay"] },
+    { id: 10, title: "Barrio Boston: Exploring Medellin's Historical Gem", url: "https://medellinparce.com/barrio-boston-exploring-medellins-historical-gem/", summary: "A guide to Barrio Boston, one of Medellin's most historic neighborhoods with rich cultural heritage.", tags: ["neighborhoods", "history", "culture", "boston", "explore", "architecture"] },
+    { id: 11, title: "Colombia Dating Apps 2025", url: "https://medellinparce.com/colombia-dating-apps-2025/", summary: "Overview of popular dating apps and sites used in Colombia, with tips for foreigners.", tags: ["dating", "apps", "social", "colombia", "foreigners"] },
+    { id: 12, title: "Colombia Dating Guide", url: "https://medellinparce.com/colombia-dating-guide/", summary: "Cultural insights and advice about dating in Colombia, including customs and expectations.", tags: ["dating", "culture", "social", "colombia", "guide", "relationships"] }
+  ];
+
+  // --- Event Handlers ---
+
+  // Handle sending a message - UPDATED with real API call structure
+  const handleSendMessage = async () => {
+    const trimmedMessage = message.trim();
+    if (trimmedMessage && !isAiTyping) { // Prevent sending while AI is typing
+      const newUserMessage = { sender: 'user', text: trimmedMessage };
+      setConversation(prev => [...prev, newUserMessage]);
+      setMessage('');
+      setShowChatPanel(true);
+      setIsAiTyping(true); // Start loading indicator
+
+      // --- Structure for Real API Call ---
+      try {
+        // 1. Define your backend endpoint URL
+        //    This endpoint will securely call Google Places API or other services.
+        //    Replace '/api/chat-proxy' with your actual backend endpoint.
+        const backendUrl = '/api/chat-proxy'; // <-- REPLACE THIS
+
+        // 2. Make the POST request to your backend
+        const response = await fetch(backendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: trimmedMessage, // Send user's message
+            language: language, // Optionally send current language
+            // Add any other context if needed (e.g., previous messages)
+            // conversationHistory: conversation
+          }),
+        });
+
+        // 3. Check if the request was successful
+        if (!response.ok) {
+          // Throw an error if the backend returned an error status (e.g., 4xx, 5xx)
+          throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+        }
+
+        // 4. Parse the JSON response from your backend
+        const data = await response.json();
+
+        // 5. Extract the AI's reply from the response data
+        //    (Adjust 'data.reply' based on your backend's response structure)
+        const aiResponseText = data.reply || (language === 'en' ? "I received a response, but couldn't understand it." : "Recibí una respuesta, pero no pude entenderla.");
+
+        // 6. Add AI response to the conversation state
+        const newAiMessage = { sender: 'ai', text: aiResponseText };
+        setConversation(prev => [...prev, newAiMessage]);
+
+      } catch (error) {
+        // 7. Handle errors (network error, backend error, etc.)
+        console.error("Error calling backend API:", error);
+        const errorMsg = { sender: 'ai', text: t.apiError }; // Use translated error message
+        setConversation(prev => [...prev, errorMsg]);
+      } finally {
+        // 8. Stop the loading indicator regardless of success or failure
+        setIsAiTyping(false);
+      }
+      // --- End Real API Call Structure ---
+    }
+  };
+
+  // Handle Enter key press in input
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Toggle audio recording state
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    if (!isRecording) {
+      alert('Grabando audio...');
+    } else {
+      alert('Grabación de audio detenida y enviada (simulado).');
+    }
+  };
+
+  // Toggle attachment menu visibility
+  const toggleAttachMenu = () => {
+    setShowAttachMenu(!showAttachMenu);
+  };
+
+  // Handle selecting an attachment type
+  const handleAttach = (type) => {
+    alert(`Adjuntando ${type}... (simulado)`);
+    setShowAttachMenu(false);
+  };
+
+  // Toggle language selection menu
+  const toggleLanguageMenu = () => {
+    setShowLanguageMenu(!showLanguageMenu);
+  };
+
+  // Change the application language
+  const changeLanguage = (lang) => {
+    setLanguage(lang);
+    setShowLanguageMenu(false);
+  };
+
+  // --- Data for UI Cards (Dynamically updates based on language) ---
+  // (getCardsData, getFeaturesData, getInspirationCardsData remain the same)
+      // Data for main cards (Comuna 13 section)
+  const getCardsData = () => [
+    {
+      id: 1,
+      title: "Graffiti Tour",
+      image: "https://placehold.co/300x200/34D399/FFFFFF?text=Graffiti+Tour",
+      category: t.tours,
+      categoryIcon: "★",
+      categoryColor: "text-yellow-500",
+      badge: t.tours === 'Tours' ? "Top Rated" : "Mejor Valorado",
+      badgeColor: "bg-green-100 text-green-800",
+      rating: 4.9,
+      reviews: 320,
+      description: t.tours === 'Tours' ? "Explore the incredible street art of Comuna 13 with local guides. Learn about the social transformation of this once-dangerous neighborhood through graffiti and murals." : "Explora el increíble arte callejero de la Comuna 13 con guías locales. Aprende sobre la transformación social de este barrio, antes peligroso, a través de grafitis y murales.",
+      address: "Comuna 13, Medellín, Colombia",
+      openHours: "10:00 AM - 4:00 PM",
+      price: "$25 USD",
+      website: "https://example.com/graffiti-tour"
+    },
+    {
+      id: 2,
+      title: "Café Colombiano",
+      image: "https://placehold.co/300x200/60A5FA/FFFFFF?text=Café+Colombiano",
+      category: t.restaurants,
+      categoryIcon: "🍽",
+      categoryColor: "text-blue-500",
+      badge: t.restaurants === 'Restaurants' ? "Popular" : "Popular",
+      badgeColor: "bg-blue-100 text-blue-800",
+      rating: 4.7,
+      reviews: 185,
+      description: t.restaurants === 'Restaurants' ? "Authentic Colombian coffee shop offering locally sourced beans and traditional preparation methods. Try their specialty coffee tasting flights." : "Auténtica cafetería colombiana que ofrece granos de origen local y métodos de preparación tradicionales. Prueba sus degustaciones de cafés especiales.",
+      address: "Calle 7 #20-45, Comuna 13, Medellín",
+      openHours: "7:00 AM - 7:00 PM",
+      price: "$$ (Medium)",
+      website: "https://example.com/cafe-colombiano"
+    },
+    {
+      id: 3,
+      title: "Escaleras Eléctricas",
+      image: "https://placehold.co/300x200/FBBF24/FFFFFF?text=Escaleras",
+      category: t.attractions,
+      categoryIcon: "🏛",
+      categoryColor: "text-yellow-500",
+      badge: t.attractions === 'Attractions' ? "Local Favorite" : "Favorito Local",
+      badgeColor: "bg-yellow-100 text-yellow-800",
+      rating: 4.6,
+      reviews: 450,
+      description: t.attractions === 'Attractions' ? "The outdoor electric escalators of Comuna 13 were built to improve mobility in this hillside neighborhood. They've become a symbol of urban innovation and social transformation." : "Las escaleras eléctricas exteriores de la Comuna 13 se construyeron para mejorar la movilidad en este barrio de ladera. Se han convertido en un símbolo de innovación urbana y transformación social.",
+      address: "Comuna 13, San Javier, Medellín",
+      openHours: "9:00 AM - 6:00 PM",
+      price: "Free",
+      website: null
+    },
+    {
+      id: 4,
+      title: "Mirador La Independencia",
+      image: "https://placehold.co/300x200/EC4899/FFFFFF?text=Mirador",
+      category: t.viewpoints,
+      categoryIcon: "🌄",
+      categoryColor: "text-pink-500",
+      badge: t.viewpoints === 'Viewpoints' ? "Scenic" : "Panorámico",
+      badgeColor: "bg-pink-100 text-pink-800",
+      rating: 4.8,
+      reviews: 210,
+      description: t.viewpoints === 'Viewpoints' ? "Breathtaking viewpoint overlooking the entire city of Medellín and the surrounding valley. Perfect spot for photography and sunset watching." : "Impresionante mirador con vistas a toda la ciudad de Medellín y el valle circundante. Lugar perfecto para fotografía y ver el atardecer.",
+      address: "Upper part of Comuna 13, Medellín",
+      openHours: "24 hours",
+      price: "Free",
+      website: null
+    }
+  ];
+
+  // Data for feature cards (Discover section)
+  const getFeaturesData = () => [
+    {
+      id: 1,
+      title: t.travelQuiz,
+      description: t.travelQuizDesc,
+      icon: "🧩",
+      content: {
+        title: t.travelQuiz,
+        questions: [
+          { question: language === 'en' ? "What type of traveler are you?" : "¿Qué tipo de viajero eres?", options: [language === 'en' ? "Adventure seeker" : "Buscador de aventuras", language === 'en' ? "Culture enthusiast" : "Entusiasta de la cultura", language === 'en' ? "Foodie" : "Amante de la comida", language === 'en' ? "Night owl" : "Noctámbulo"] },
+          { question: language === 'en' ? "How long is your stay?" : "¿Cuánto dura tu estancia?", options: [language === 'en' ? "1-2 days" : "1-2 días", language === 'en' ? "3-5 days" : "3-5 días", language === 'en' ? "1 week" : "1 semana", language === 'en' ? "More than a week" : "Más de una semana"] },
+          { question: language === 'en' ? "What's your budget level?" : "¿Cuál es tu nivel de presupuesto?", options: [language === 'en' ? "Budget" : "Económico", language === 'en' ? "Moderate" : "Moderado", language === 'en' ? "Luxury" : "Lujo"] }
+        ],
+        recommendations: { title: t.recommendationsTitle, description: t.recommendationsDesc }
+      }
+    },
+    {
+      id: 2,
+      title: t.createItinerary,
+      description: t.createItineraryDesc,
+      icon: "📅",
+      content: {
+        title: t.createItinerary,
+        steps: [
+          language === 'en' ? "Choose the duration of your trip" : "Elige la duración de tu viaje",
+          language === 'en' ? "Select your interests and preferences" : "Selecciona tus intereses y preferencias",
+          language === 'en' ? "Pick must-visit attractions" : "Elige atracciones imprescindibles",
+          language === 'en' ? "Get a day-by-day customized plan" : "Obtén un plan personalizado día a día"
+        ],
+        sample: {
+          title: t.sampleItinerary,
+          days: [
+            { day: language === 'en' ? "Day 1: City Center" : "Día 1: Centro de la Ciudad", activities: ["Plaza Botero", "Museo de Antioquia", "Parque Lleras"] },
+            { day: language === 'en' ? "Day 2: Comuna 13" : "Día 2: Comuna 13", activities: [t.tours, t.attractions, t.restaurants] },
+            { day: language === 'en' ? "Day 3: Surrounding Areas" : "Día 3: Alrededores", activities: ["Guatapé", "El Peñol", "Santa Fe de Antioquia"] }
+          ]
+        }
+      }
+    },
+    {
+      id: 3,
+      title: t.localInsights,
+      description: t.localInsightsDesc,
+      icon: "🔍",
+      content: {
+        title: t.insightsTitle,
+        insights: [
+          { title: language === 'en' ? "Best Street Food Spots" : "Mejores Puestos de Comida Callejera", description: language === 'en' ? "Where locals get their empanadas, arepas, and bandeja paisa" : "Donde los locales compran sus empanadas, arepas y bandeja paisa" },
+          { title: language === 'en' ? "Hidden Cafés" : "Cafés Ocultos", description: language === 'en' ? "Cozy spots for the best Colombian coffee experience" : "Lugares acogedores para la mejor experiencia de café colombiano" },
+          { title: language === 'en' ? "Transportation Tips" : "Consejos de Transporte", description: language === 'en' ? "Navigate the city like a local with these metro and bus tips" : "Navega por la ciudad como un local con estos consejos de metro y autobús" },
+          { title: language === 'en' ? "Local Phrases" : "Frases Locales", description: language === 'en' ? "Essential Colombian Spanish phrases to know" : "Frases esenciales del español colombiano que debes saber" }
+        ]
+      }
+    },
+    {
+      id: 4,
+      title: t.safetyTips,
+      description: t.safetyTipsDesc,
+      icon: "🛡️",
+      content: {
+        title: t.safetyTitle,
+        tips: [
+          { title: language === 'en' ? "Safe Neighborhoods" : "Barrios Seguros", description: language === 'en' ? "El Poblado, Laureles, and Envigado are among the safest areas" : "El Poblado, Laureles y Envigado están entre las áreas más seguras" },
+          { title: language === 'en' ? "Transportation Safety" : "Seguridad en el Transporte", description: language === 'en' ? "Use official taxis or ride-sharing apps, especially at night" : "Usa taxis oficiales o aplicaciones de transporte, especialmente de noche" },
+          { title: language === 'en' ? "Valuables & Belongings" : "Objetos de Valor y Pertenencias", description: language === 'en' ? "Keep valuables secure and avoid flashing expensive items" : "Mantén los objetos de valor seguros y evita mostrar artículos caros" },
+          { title: language === 'en' ? "Emergency Contacts" : "Contactos de Emergencia", description: `Police: 123, Tourist Police: (+57) 317 8970588` }
+        ]
+      }
+    }
+  ];
+
+  // Data for inspiration cards (Get Inspired section)
+  const getInspirationCardsData = () => [
+    {
+      id: 1,
+      title: t.bestThings,
+      badge: t.guide,
+      badgeColor: "bg-green-100 text-green-800",
+      image: "https://placehold.co/300x200/10B981/FFFFFF?text=Best+Things",
+      content: {
+        title: t.bestThingsTitle,
+        items: [
+          language === 'en' ? "Take the Metrocable to Parque Arví" : "Tomar el Metrocable al Parque Arví",
+          language === 'en' ? "Visit Plaza Botero" : "Visitar la Plaza Botero",
+          language === 'en' ? "Explore Comuna 13's street art" : "Explorar el arte callejero de la Comuna 13",
+          language === 'en' ? "Visit Jardín Botánico" : "Visitar el Jardín Botánico",
+          language === 'en' ? "Take a city transformation tour" : "Hacer un tour de transformación de la ciudad",
+          language === 'en' ? "Visit Museo de Antioquia" : "Visitar el Museo de Antioquia",
+          language === 'en' ? "Eat at Mercado del Río" : "Comer en Mercado del Río",
+          language === 'en' ? "Experience Parque Lleras nightlife" : "Experimentar la vida nocturna del Parque Lleras",
+          language === 'en' ? "Take a day trip to Guatapé" : "Hacer una excursión de un día a Guatapé",
+          language === 'en' ? "Try local cuisine (Bandeja Paisa!)" : "Probar la cocina local (¡Bandeja Paisa!)"
+        ]
+      }
+    },
+    {
+      id: 2,
+      title: t.daysIn,
+      badge: t.itinerary,
+      badgeColor: "bg-blue-100 text-blue-800",
+      image: "https://placehold.co/300x200/3B82F6/FFFFFF?text=3+Days",
+      content: {
+        title: t.threeDaysTitle,
+        days: [
+          { day: language === 'en' ? "Day 1: City Center Exploration" : "Día 1: Exploración del Centro", activities: [language === 'en' ? "Morning: Plaza Botero & Museo de Antioquia" : "Mañana: Plaza Botero y Museo de Antioquia", language === 'en' ? "Lunch: Try bandeja paisa at Hacienda" : "Almuerzo: Probar bandeja paisa en Hacienda", language === 'en' ? "Afternoon: Metropolitan Cathedral & Parque Berrío" : "Tarde: Catedral Metropolitana y Parque Berrío", language === 'en' ? "Evening: Dinner at El Poblado" : "Noche: Cena en El Poblado"] },
+          { day: language === 'en' ? "Day 2: Nature & Views" : "Día 2: Naturaleza y Vistas", activities: [language === 'en' ? "Morning: Jardín Botánico" : "Mañana: Jardín Botánico", language === 'en' ? "Lunch: Mercado del Río food hall" : "Almuerzo: Mercado del Río", language === 'en' ? "Afternoon: Metrocable to Parque Arví" : "Tarde: Metrocable al Parque Arví", language === 'en' ? "Evening: Sunset at Pueblito Paisa" : "Noche: Atardecer en Pueblito Paisa"] },
+          { day: language === 'en' ? "Day 3: Local Culture" : "Día 3: Cultura Local", activities: [language === 'en' ? "Morning: Comuna 13 graffiti tour" : "Mañana: Tour de grafitis en Comuna 13", language === 'en' ? "Lunch: Local restaurant in San Javier" : "Almuerzo: Restaurante local en San Javier", language === 'en' ? "Afternoon: Coffee tour" : "Tarde: Tour de café", language === 'en' ? "Evening: Salsa dancing in Laureles" : "Noche: Bailar salsa en Laureles"] }
+        ]
+      }
+    },
+    {
+      id: 3,
+      title: t.hiddenGems,
+      badge: t.localTips,
+      badgeColor: "bg-purple-100 text-purple-800",
+      image: "https://placehold.co/300x200/8B5CF6/FFFFFF?text=Hidden+Gems",
+      content: {
+        title: t.hiddenGemsTitle,
+        gems: [
+          { name: "Café Zeppelin", description: language === 'en' ? "Underground music venue with great coffee" : "Local de música underground con excelente café" },
+          { name: "Envy Rooftop", description: language === 'en' ? "Lesser-known rooftop with spectacular views" : "Terraza menos conocida con vistas espectaculares" },
+          { name: "Barrio Prado", description: language === 'en' ? "Historic neighborhood with colonial architecture" : "Barrio histórico con arquitectura colonial" },
+          { name: "La Minorista Market", description: language === 'en' ? "Authentic local market experience" : "Auténtica experiencia de mercado local" },
+          { name: "Alto de las Palmas", description: language === 'en' ? "Scenic viewpoint outside the city" : "Mirador panorámico fuera de la ciudad" }
+        ]
+      }
+    },
+    {
+      id: 4,
+      title: t.foodGuide,
+      badge: t.food,
+      badgeColor: "bg-yellow-100 text-yellow-800",
+      image: "https://placehold.co/300x200/F59E0B/FFFFFF?text=Food+Guide",
+      content: {
+        title: t.foodGuideTitle,
+        sections: [
+          { title: language === 'en' ? "Must-Try Local Dishes" : "Platos Locales Imperdibles", items: ["Bandeja Paisa", "Arepas", "Empanadas", "Mondongo", "Buñuelos"] },
+          { title: language === 'en' ? "Best Coffee Shops" : "Mejores Cafeterías", items: ["Pergamino Café", "Café Velvet", "Urbania Café", "Café Cliché"] },
+          { title: language === 'en' ? "Street Food Spots" : "Puestos de Comida Callejera", items: ["Plaza Minorista", "Parque de los Deseos", "Carrera 70"] },
+          { title: language === 'en' ? "Fine Dining" : "Alta Cocina", items: ["El Cielo", "Carmen", "Ocio", "Herbario"] }
+        ]
+      }
+    }
+  ];
+
+
+  // Get memoized data based on language
+  const cards = useMemo(getCardsData, [language, t]);
+  const features = useMemo(getFeaturesData, [language, t]);
+  const inspirationCards = useMemo(getInspirationCardsData, [language, t]);
+
+  // --- Navigation Handlers ---
+  const handleBack = () => { setSelectedCard(null); setSelectedFeature(null); setSelectedInspiration(null); };
+  const handleCardClick = (card) => { setSelectedCard(card); setSelectedFeature(null); setSelectedInspiration(null); setShowChatPanel(false); };
+  const handleFeatureClick = (feature) => { setSelectedFeature(feature); setSelectedCard(null); setSelectedInspiration(null); setShowChatPanel(false); };
+  const handleInspirationClick = (card) => { setSelectedInspiration(card); setSelectedCard(null); setSelectedFeature(null); setShowChatPanel(false); };
+  const closeChatPanel = () => { setShowChatPanel(false); };
+
+  // --- Button Click Handlers ---
+  const handleNewChatClick = () => { handleBack(); setConversation([{ sender: 'ai', text: t.newChatWelcome }]); setShowChatPanel(true); setMessage(''); };
+  const handleCreateTripClick = () => { handleBack(); setConversation([{ sender: 'ai', text: t.createTripStartPrompt }]); setShowChatPanel(true); setMessage(''); };
+
+
+  // --- Render Logic ---
+  return (
+    <div className="flex flex-col h-screen bg-gray-100 font-sans relative overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+         <div className="flex items-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center mr-2 shadow-sm">
+            <span className="text-white font-bold text-sm">AI</span>
+          </div>
+          <span className="font-semibold text-lg text-gray-800">Medellin AI</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleCreateTripClick}
+            className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg flex items-center hover:shadow-lg transition-all text-sm font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-1"
+          >
+             <CalendarDays size={16} className="mr-1.5" />
+            <span>{t.createTrip}</span>
+          </button>
+          <div className="relative ml-2">
+            <button
+              className="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors flex items-center justify-center"
+              onClick={toggleLanguageMenu}
+              aria-label="Change Language"
+            >
+              <Globe size={20} className="text-gray-700" />
+            </button>
+            {showLanguageMenu && (
+              <div className="absolute right-0 mt-2 bg-white rounded-md shadow-xl py-2 z-30 min-w-[120px] border border-gray-200 animate-pop-up">
+                <div
+                  className={`px-4 py-2 flex items-center hover:bg-green-50 cursor-pointer text-sm ${language === 'en' ? 'font-semibold text-green-700' : 'text-gray-700'}`}
+                  onClick={() => changeLanguage('en')}
+                >
+                  <span className="mr-2 text-lg">🇺🇸</span>
+                  <span>English</span>
+                </div>
+                <div
+                  className={`px-4 py-2 flex items-center hover:bg-green-50 cursor-pointer text-sm ${language === 'es' ? 'font-semibold text-green-700' : 'text-gray-700'}`}
+                  onClick={() => changeLanguage('es')}
+                >
+                  <span className="mr-2 text-lg">🇨🇴</span>
+                  <span>Español</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* New Chat Button */}
+      {!(selectedCard || selectedFeature || selectedInspiration) && (
+        <div className="p-4 flex justify-center sticky top-[73px] z-10 bg-gradient-to-b from-gray-100 via-gray-100 to-transparent -mb-4">
+          <button
+            onClick={handleNewChatClick}
+            className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg w-auto flex items-center justify-center hover:shadow-lg transition-all transform hover:scale-105 shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+          >
+            <Plus size={18} className="mr-1" />
+            <span>{t.newChat}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <main className={`flex-1 overflow-y-auto p-4 pt-8 ${showChatPanel && !(selectedCard || selectedFeature || selectedInspiration) ? 'pb-64' : 'pb-24'}`}>
+        {selectedCard ? (
+           // --- Detailed View: Main Card --- (JSX same as before)
+           <div className="bg-white rounded-lg shadow-lg p-5 animate-fade-in max-w-4xl mx-auto">
+            {/* Back Button and Title */}
+            <div className="flex items-center mb-4">
+              <button
+                className="flex items-center text-green-600 hover:text-green-800 mr-4 p-1 rounded-full hover:bg-green-50 transition-colors focus:outline-none focus:ring-1 focus:ring-green-400"
+                onClick={handleBack}
+                aria-label={t.backToMain}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h2 className="text-2xl font-bold text-gray-800">{selectedCard.title}</h2>
+            </div>
+
+            {/* Image Placeholder */}
+            <div className="h-56 bg-gray-200 rounded-lg mb-5 flex items-center justify-center text-gray-400 overflow-hidden">
+              <img src={selectedCard.image} alt={selectedCard.title} className="w-full h-full object-cover" />
+            </div>
+
+            {/* Badges and Rating */}
+            <div className="flex flex-wrap items-center mb-4 gap-x-3 gap-y-1">
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${selectedCard.badgeColor}`}>{selectedCard.badge}</span>
+              <div className="flex items-center text-sm">
+                <span className="text-yellow-500 mr-1">★</span>
+                <span className="font-semibold">{selectedCard.rating}</span>
+              </div>
+              <div className="text-sm text-gray-500">({selectedCard.reviews} {t.reviews})</div>
+              <div className={`text-sm ${selectedCard.categoryColor}`}>
+                {selectedCard.categoryIcon} {selectedCard.category}
+              </div>
+            </div>
+
+            {/* Description and Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-6">
+              {/* Left Column: Description */}
+              <div>
+                <h3 className="font-semibold text-lg mb-2 text-gray-700">{t.description}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{selectedCard.description}</p>
+              </div>
+
+              {/* Right Column: Address, Hours, Price */}
+              <div className="space-y-4 text-sm">
+                <div>
+                  <h3 className="font-semibold mb-1 text-gray-700">{t.address}</h3>
+                  <p className="text-gray-600">{selectedCard.address}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1 text-gray-700">{t.openHours}</h3>
+                  <p className="text-gray-600">{selectedCard.openHours}</p>
+                </div>
+                {selectedCard.price && (
+                  <div>
+                    <h3 className="font-semibold mb-1 text-gray-700">{t.price}</h3>
+                    <p className="text-gray-600">{selectedCard.price}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow hover:shadow-md flex items-center focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-1">
+                <MapPin size={16} className="mr-1.5" /> {t.showOnMap}
+              </button>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow hover:shadow-md flex items-center focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1">
+                <MessageCircle size={16} className="mr-1.5" /> {t.readReviews}
+              </button>
+              {selectedCard.website && (
+                <a href={selectedCard.website} target="_blank" rel="noopener noreferrer" className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 shadow-sm hover:shadow flex items-center focus:outline-none focus:ring-1 focus:ring-gray-400">
+                  <Globe size={16} className="mr-1.5" /> {t.visitWebsite}
+                </a>
+              )}
+            </div>
+          </div>
+        ) : selectedFeature ? (
+           // --- Detailed View: Feature Card --- (JSX same as before)
+           <div className="bg-white rounded-lg shadow-lg p-5 animate-fade-in max-w-4xl mx-auto">
+            {/* Back Button and Title */}
+            <div className="flex items-center mb-5">
+              <button
+                className="flex items-center text-green-600 hover:text-green-800 mr-4 p-1 rounded-full hover:bg-green-50 transition-colors focus:outline-none focus:ring-1 focus:ring-green-400"
+                onClick={handleBack}
+                aria-label={t.backToMain}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h2 className="text-2xl font-bold text-gray-800">{selectedFeature.content.title}</h2>
+            </div>
+
+            {/* Content based on Feature ID */}
+            {selectedFeature.id === 1 && ( // Travel Quiz
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 text-gray-700">{t.answerQuestionsPrompt}</h3>
+                  {selectedFeature.content.questions.map((q, index) => (
+                    <div key={index} className="mb-6 p-4 border rounded-lg bg-gray-50 border-gray-200">
+                      <p className="font-medium mb-3 text-gray-800">{q.question}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {q.options.map((opt, optIndex) => (
+                          <button
+                            key={optIndex}
+                            className="px-3 py-1.5 border border-green-300 rounded-md hover:bg-green-100 hover:border-green-400 focus:bg-green-100 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none transition-colors text-sm text-gray-700"
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 border rounded-lg bg-green-50 border-green-200">
+                  <h3 className="text-lg font-semibold mb-2 text-green-800">{selectedFeature.content.recommendations.title}</h3>
+                  <p className="text-sm text-green-700 mb-4">{selectedFeature.content.recommendations.description}</p>
+                  <div className="text-sm text-green-600 italic">Recommendations based on your answers will appear here...</div>
+                  <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-1">
+                    {t.startQuiz}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedFeature.id === 2 && ( // Create Itinerary
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-700">{t.itinerarySteps}:</h3>
+                  <p className="text-sm text-gray-600 mb-4">{t.createItineraryPrompt}</p>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-700 pl-4 mb-6">
+                    {selectedFeature.content.steps.map((step, index) => (
+                      <li key={index} className="text-sm">{step}</li>
+                    ))}
+                  </ol>
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-1">
+                    {t.startPlanning}
+                  </button>
+                </div>
+                <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+                  <h3 className="text-lg font-semibold mb-4 text-blue-800">{selectedFeature.content.sample.title}</h3>
+                  {selectedFeature.content.sample.days.map((dayData, index) => (
+                    <div key={index} className="mb-4 last:mb-0">
+                      <h4 className="font-semibold mb-2 text-blue-700">{dayData.day}</h4>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-blue-600 pl-4">
+                        {dayData.activities.map((activity, actIndex) => (
+                          <li key={actIndex}>{activity}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedFeature.id === 3 && ( // Local Insights
+              <div className="space-y-5">
+                {selectedFeature.content.insights.map((insight, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-purple-50 border-purple-200">
+                    <h4 className="font-semibold mb-1 text-purple-800">{insight.title}</h4>
+                    <p className="text-sm text-purple-700">{insight.description}</p>
+                  </div>
+                ))}
+                <button className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1">
+                  {t.exploreInsights}
+                </button>
+              </div>
+            )}
+
+            {selectedFeature.id === 4 && ( // Safety Tips
+              <div className="space-y-6">
+                 <p className="text-sm text-gray-600">{t.safetyIntro}</p>
+                {selectedFeature.content.tips.map((tip, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                    <h4 className="font-semibold mb-1 text-yellow-800">{tip.title}</h4>
+                    <p className="text-sm text-yellow-700">{tip.description}</p>
+                  </div>
+                ))}
+                 <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 className="font-semibold text-lg mb-2 text-red-800">{t.emergencyHelpTitle}</h3>
+                    <p className="text-sm text-red-700">{t.emergencyHelpPrompt}</p>
+                    <ul className="list-disc pl-6 mt-2 text-sm text-red-700 space-y-1">
+                       <li>{t.emergencyPolice}</li>
+                       <li>{t.emergencyTouristPolice}</li>
+                       <li>{t.emergencyAmbulance}</li>
+                    </ul>
+                 </div>
+              </div>
+            )}
+          </div>
+        ) : selectedInspiration ? (
+           // --- Detailed View: Inspiration Card --- (JSX same as before)
+           <div className="bg-white rounded-lg shadow-lg p-5 animate-fade-in max-w-4xl mx-auto">
+             {/* Back Button and Title */}
+            <div className="flex items-center mb-5">
+              <button
+                className="flex items-center text-green-600 hover:text-green-800 mr-4 p-1 rounded-full hover:bg-green-50 transition-colors focus:outline-none focus:ring-1 focus:ring-green-400"
+                onClick={handleBack}
+                aria-label={t.backToMain}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h2 className="text-2xl font-bold text-gray-800">{selectedInspiration.content.title}</h2>
+            </div>
+
+            {/* Image Placeholder */}
+            <div className="h-56 bg-gray-200 rounded-lg mb-5 flex items-center justify-center text-gray-400 overflow-hidden">
+               <img src={selectedInspiration.image} alt={selectedInspiration.title} className="w-full h-full object-cover" />
+            </div>
+
+            {/* Content based on Inspiration ID */}
+            {selectedInspiration.id === 1 && ( // Best Things to Do
+              <ol className="list-decimal list-inside space-y-3 text-gray-700 pl-4">
+                {selectedInspiration.content.items.map((item, index) => (
+                  <li key={index} className="text-sm leading-relaxed">{item}</li>
+                ))}
+              </ol>
+            )}
+
+            {selectedInspiration.id === 2 && ( // 3 Days in Medellin
+              <div className="space-y-6">
+                {selectedInspiration.content.days.map((dayData, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+                    <h3 className="text-lg font-semibold mb-3 text-blue-800">{dayData.day}</h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-blue-700 pl-4">
+                      {dayData.activities.map((activity, actIndex) => (
+                        <li key={actIndex}>{activity}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedInspiration.id === 3 && ( // Hidden Gems
+              <div className="space-y-4">
+                {selectedInspiration.content.gems.map((gem, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-purple-50 border-purple-200">
+                    <h3 className="font-semibold text-purple-800">{gem.name}</h3>
+                    <p className="text-sm text-purple-700">{gem.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedInspiration.id === 4 && ( // Food Guide
+              <div className="space-y-6">
+                {selectedInspiration.content.sections.map((section, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                    <h3 className="text-lg font-semibold mb-3 text-yellow-800">{section.title}</h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-yellow-700 pl-4">
+                      {section.items.map((item, itemIndex) => (
+                        <li key={itemIndex}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          // --- Main Dashboard View ---
+          <div className="space-y-8 animate-fade-in">
+             {/* Content same as before, including Popular Articles */}
+             {/* Welcome Message */}
+            <div className="flex items-start p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100 shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center mr-3 flex-shrink-0 shadow">
+                <span className="text-white font-bold text-sm">AI</span>
+              </div>
+              <p className="text-sm text-gray-700">{t.welcome}</p>
+            </div>
+
+            {/* Section: For you in Comuna 13 */}
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-xl font-semibold text-gray-800">{t.forYou}</h2>
+              </div>
+              <div className="flex space-x-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-thin">
+                {cards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="bg-white rounded-lg shadow-md overflow-hidden w-60 sm:w-64 flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-gray-100"
+                    onClick={() => handleCardClick(card)}
+                  >
+                    <div className="h-32 bg-gray-200 flex items-center justify-center overflow-hidden">
+                      <img src={card.image} alt={card.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-sm text-gray-800 truncate pr-2">{card.title}</h3>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${card.badgeColor} flex-shrink-0`}>{card.badge}</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-500 mb-1 space-x-2">
+                        <span className={card.categoryColor}>{card.categoryIcon} {card.category}</span>
+                        <span>•</span>
+                        <span className="flex items-center"><span className="text-yellow-500 mr-0.5">★</span> {card.rating}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Section: Discover Medellin (Features) */}
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">{t.discover}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {features.map((feature) => (
+                  <div
+                    key={feature.id}
+                    className="bg-white rounded-lg shadow-md p-4 flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-shadow border border-gray-100 hover:border-gray-200"
+                    onClick={() => handleFeatureClick(feature)}
+                  >
+                    <div className="text-2xl bg-gray-100 p-2 rounded-lg flex-shrink-0">{feature.icon}</div>
+                    <div>
+                      <h3 className="font-semibold text-sm text-gray-800">{feature.title}</h3>
+                      <p className="text-xs text-gray-500">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Section: Get Inspired */}
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-xl font-semibold text-gray-800">{t.getInspired}</h2>
+              </div>
+              <div className="flex space-x-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-thin">
+                {inspirationCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="bg-white rounded-lg shadow-md overflow-hidden w-52 sm:w-56 flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-gray-100"
+                    onClick={() => handleInspirationClick(card)}
+                  >
+                    <div className="h-28 bg-gray-200 flex items-center justify-center overflow-hidden">
+                       <img src={card.image} alt={card.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${card.badgeColor} mb-1.5 inline-block`}>{card.badge}</span>
+                      <h3 className="font-semibold text-sm text-gray-800 truncate">{card.title}</h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Section: Popular Articles */}
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">{t.popularArticles}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {knowledgeBase.map((article) => (
+                  <a
+                    key={article.id}
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white rounded-lg shadow-md p-4 flex items-center space-x-3 cursor-pointer hover:shadow-lg transition-shadow border border-gray-100 hover:border-green-200 group"
+                  >
+                    <div className="flex-shrink-0 text-green-500 group-hover:text-green-600">
+                       <ExternalLink size={18} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm text-gray-800 group-hover:text-green-700">{article.title}</h3>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+      </main>
+
+       {/* Chat Panel Overlay */}
+       {showChatPanel && !(selectedCard || selectedFeature || selectedInspiration) && (
+         <div className="fixed bottom-[76px] right-4 left-4 sm:left-auto sm:w-96 h-[400px] z-30 animate-slide-up">
+           <div className="bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col h-full">
+             {/* Chat Panel Header */}
+             <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+               <h3 className="text-sm font-semibold text-gray-700">{t.chatWithAI}</h3>
+               <button
+                 onClick={closeChatPanel}
+                 className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                 aria-label={t.closeChat}
+               >
+                 <X size={18} />
+               </button>
+             </div>
+
+             {/* Chat Messages Area */}
+             <div ref={chatPanelRef} className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+               {conversation.map((msg, index) => (
+                 <div key={index} className={`flex items-start gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                   {msg.sender === 'ai' && (
+                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center shadow-sm">
+                       <Bot size={16} className="text-white" />
+                     </div>
+                   )}
+                   <div className={`flex flex-col w-full max-w-[320px] leading-1.5 p-3 border-gray-200 rounded-xl ${
+                       msg.sender === 'user'
+                         ? 'rounded-tr-none bg-blue-500 text-white'
+                         : 'rounded-tl-none bg-gray-100 text-gray-800'
+                     }`}
+                   >
+                     {/* Basic link detection (naive) - replace with proper markdown/HTML rendering if needed */}
+                     <p className="text-sm font-normal" dangerouslySetInnerHTML={{ __html: msg.text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline hover:text-blue-600">$1</a>') }}></p>
+                   </div>
+                   {msg.sender === 'user' && (
+                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                       <User size={16} className="text-gray-500" />
+                     </div>
+                   )}
+                 </div>
+               ))}
+               {/* Typing indicator */}
+               {isAiTyping && (
+                  <div className="flex items-start gap-2.5 justify-start">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center shadow-sm">
+                       <Bot size={16} className="text-white" />
+                     </div>
+                    <div className="flex items-center space-x-1 p-3 max-w-[320px] rounded-xl rounded-tl-none bg-gray-100">
+                        <span className="text-sm font-normal italic text-gray-500">{t.aiTyping}</span>
+                        <Loader2 size={16} className="animate-spin text-gray-400" />
+                    </div>
+                </div>
+               )}
+             </div>
+           </div>
+         </div>
+       )}
+
+
+      {/* Footer Input Area */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-top">
+        <div className="flex items-center space-x-2 relative max-w-4xl mx-auto">
+          {/* Attach Button */}
+          <div className="relative">
+            <button
+              className="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-400"
+              onClick={toggleAttachMenu}
+              aria-label="Attach file"
+              disabled={isAiTyping}
+            >
+              <Paperclip size={20} />
+            </button>
+            {showAttachMenu && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white rounded-lg shadow-xl py-2 z-50 min-w-[180px] border border-gray-200 animate-pop-up">
+                <button onClick={() => handleAttach(t.attachPhoto)} className="w-full px-4 py-2 flex items-center text-sm text-gray-700 hover:bg-green-50 text-left">
+                  <Image size={16} className="mr-2 text-blue-500" /> {t.attachPhoto}
+                </button>
+                <button onClick={() => handleAttach(t.attachDocument)} className="w-full px-4 py-2 flex items-center text-sm text-gray-700 hover:bg-green-50 text-left">
+                  <File size={16} className="mr-2 text-green-500" /> {t.attachDocument}
+                </button>
+                <button onClick={() => handleAttach(t.shareLocation)} className="w-full px-4 py-2 flex items-center text-sm text-gray-700 hover:bg-green-50 text-left">
+                  <MapPin size={16} className="mr-2 text-red-500" /> {t.shareLocation}
+                </button>
+                <button onClick={toggleAttachMenu} className="absolute -top-2 -right-2 p-0.5 bg-gray-300 rounded-full text-gray-600 hover:bg-gray-400 hover:text-white focus:outline-none focus:ring-1 focus:ring-gray-400">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Message Input */}
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={isAiTyping ? t.aiTyping : t.askAbout}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm disabled:bg-gray-100"
+            disabled={isAiTyping}
+          />
+
+          {/* Mic/Send Button */}
+          {message.trim() && !isAiTyping ? (
+            <button
+              className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-1 shadow hover:shadow-md flex-shrink-0"
+              onClick={handleSendMessage}
+              aria-label="Send message"
+              disabled={isAiTyping}
+            >
+              <Send size={20} />
+            </button>
+          ) : (
+            <button
+              className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 flex-shrink-0 ${isRecording ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-400 animate-pulse' : 'bg-gray-200 text-gray-600 hover:bg-gray-300 focus:ring-gray-400'}`}
+              onClick={toggleRecording}
+              aria-label={isRecording ? "Stop recording" : "Start recording"}
+              disabled={isAiTyping}
+            >
+              <Mic size={20} />
+            </button>
+          )}
+        </div>
+      </footer>
+
+      {/* Inject global styles for animations and scrollbar */}
+      <style jsx global>{`
+        /* ... (animations and styles remain the same as previous version) ... */
+         @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+
+        @keyframes pop-up {
+          from { opacity: 0; transform: translateY(5px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-pop-up {
+          animation: pop-up 0.2s ease-out forwards;
+        }
+
+        /* Animation for chat panel sliding up */
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(100%); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out forwards;
+        }
+
+
+        /* Minimal scrollbar styling */
+        .scrollbar-thin::-webkit-scrollbar {
+          height: 6px; width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: #f1f1f1; border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #cccccc; border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: #aaaaaa;
+        }
+        .scrollbar-thin {
+          scrollbar-width: thin; scrollbar-color: #cccccc #f1f1f1;
+        }
+
+        /* Custom shadow for top */
+        .shadow-top {
+           box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        html, body, #__next { height: 100%; }
+        #__next > div { height: 100%; }
+
+        /* Simple pulse for typing indicator */
+        .animate-pulse-dots span {
+            animation: pulse-dots 1.4s infinite ease-in-out both;
+        }
+        .animate-pulse-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .animate-pulse-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes pulse-dots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default MedellinApp;
